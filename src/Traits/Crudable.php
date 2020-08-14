@@ -1,10 +1,10 @@
 <?php
 
-namespace EnamDuaTeknologi\Crud\Traits;
+namespace EnamDuaTeknologi\LaravelCrudApi\Traits;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use EnamDuaTeknologi\Crud\Transformers\v1\Crud;
+use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 
 trait Crudable
 {
@@ -65,7 +65,7 @@ trait Crudable
      private static function setTransformer($string) {
         return class_exists($string)
             ? $string
-            : 'EnamDuaTeknologi\\Crud\\Transformers\\v1\\Crud\\CrudTransformer';
+            : 'EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\CrudTransformer';
     }
 
     /**

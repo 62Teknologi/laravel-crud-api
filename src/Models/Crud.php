@@ -1,6 +1,6 @@
 <?php
 
-namespace EnamDuaTeknologi\Crud\Models;
+namespace EnamDuaTeknologi\LaravelCrudApi\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

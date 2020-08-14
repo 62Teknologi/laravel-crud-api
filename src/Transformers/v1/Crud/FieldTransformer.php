@@ -1,8 +1,8 @@
 <?php
 
-namespace EnamDuaTeknologi\Crud\Transformers\v1\Crud;
+namespace EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 
-use App\Models\Crud;
+use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 
 class FieldTransformer
 {
