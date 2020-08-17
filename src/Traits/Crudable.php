@@ -24,9 +24,9 @@ trait Crudable
         );
 
         // should be private setFilter()
-        if ($request->search) {
+        if ($request->has('search')) {
             $query = $query->where(function ($subQuery) use(&$request,  $fields) {
-                array_map(function($field) use(&$request, &$subQuery) {
+                if($request->search) array_map(function($field) use(&$request, &$subQuery) {
                     if($field['type'] == 'varchar' || $field['type'] == 'longtext') $subQuery = $subQuery->orWhere($field['field'], 'like', '%'.$request->search.'%');
                 }, $fields);
 
@@ -44,12 +44,12 @@ trait Crudable
 
         // should be private setSort()
         $desc = $request->has('desc')
-            ? $request->desc
+            ? 'desc'
             : 'asc';
 
-        $sort = ($request->sort)
-            ? $this->model->orderBy('name', 'desc')
-            : $this->model;
+        $query = ($request->sort)
+            ? $query->orderBy($request->sort, $desc)
+            : $query;
 
         // paginate default should accept params
         $return = fractal($query->paginate(15))
