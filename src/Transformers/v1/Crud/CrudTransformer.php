@@ -13,13 +13,13 @@ class CrudTransformer extends TransformerAbstract
         $model = $model->toArray();
 
         foreach ($model as $key => $value) {
-            if($key == 'parent_id') {
+            if ($key == 'parent_id') {
                 $objName = str_replace('_id', '', $key);
                 
                 $model[$objName] = (new Crud())->setTable($table)
                     ->select('id', 'code', 'description')
                     ->find($model[$key]);
-            }elseif(strpos($key, '_id')) {
+            } elseif (strpos($key, '_id')) {
                 $objName = str_replace('_id', '', $key);
                 
                 $model[$objName] = (new Crud())->setTable($objName.'s')
