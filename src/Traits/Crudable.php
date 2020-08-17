@@ -10,20 +10,53 @@ trait Crudable
 {
     static $transformer;
 
-    public function index()
+    public function index(Request $request)
     {
+        $fields = Crud\FieldTransformer::transform(
+            DB::select('describe ' . $this->model->getTable()),
+            $this->model->getTable()
+        );
+
+        $query = $this->model;
+
         $transformer = self::setTransformer(
             'Crud\\'.(self::toKebabCase($this->model->getTable())).'Transformer'
         );
 
-        $return = fractal($this->model->paginate(15))
+        // should be private setFilter()
+        if ($request->search) {
+            $query = $query->where(function ($subQuery) use(&$request,  $fields) {
+                array_map(function($field) use(&$request, &$subQuery) {
+                    if($field['type'] == 'varchar' || $field['type'] == 'longtext') $subQuery = $subQuery->orWhere($field['field'], 'like', '%'.$request->search.'%');
+                }, $fields);
+
+                return $subQuery;
+            });
+
+            $query = $query->where(function ($subQuery) use(&$request,  $fields) {
+                array_map(function($field) use(&$request, &$subQuery) {
+                    if($request->has($field['field']) && $field['type'] == 'relation') $subQuery = $subQuery->orWhereIn($field['field'], explode(',', $request->input($field['field'])));
+                }, $fields);
+
+                return $subQuery;
+            });
+        }
+
+        // should be private setSort()
+        $desc = $request->has('desc')
+            ? $request->desc
+            : 'asc';
+
+        $sort = ($request->sort)
+            ? $this->model->orderBy('name', 'desc')
+            : $this->model;
+
+        // paginate default should accept params
+        $return = fractal($query->paginate(15))
             ->transformWith(new $transformer)
             ->toArray();
 
-        $return['fields'] = Crud\FieldTransformer::transform(
-            DB::select('describe ' . $this->model->getTable()),
-            $this->model->getTable()
-        );
+        $return['fields'] = $fields;
 
         $return['message'] = 'Success';
 
