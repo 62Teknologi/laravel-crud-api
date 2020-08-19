@@ -21,7 +21,8 @@ trait Crudable
             ->toArray();
 
         $return['fields'] = Crud\FieldTransformer::transform(
-            DB::select('describe ' . $this->model->getTable())
+            DB::select('describe ' . $this->model->getTable()),
+            $this->model->getTable()
         );
 
         $return['message'] = 'Success';
