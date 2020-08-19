@@ -1,0 +1,10 @@
+vendor
+.idea
+Homestead.json
+Homestead.yaml
+.env
+/nbproject
+start.sh
+.php_cs.cache
+.git/cghooks.lock
+

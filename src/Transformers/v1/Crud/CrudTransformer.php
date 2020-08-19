@@ -2,8 +2,8 @@
 
 namespace EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 
+use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 use League\Fractal\TransformerAbstract;
-use App\Models\Crud;
 
 class CrudTransformer extends TransformerAbstract
 {
