@@ -9,7 +9,7 @@ use \Illuminate\Pagination\Paginator;
 
 trait Crudable
 {
-    public function index()
+    public function index($table)
     {
         /***** WARNING, FUCK1NG STUPID $H1T CODE BELOW, REMOVE ASAP!!! *******/
         Paginator::currentPageResolver(function () {
@@ -18,14 +18,14 @@ trait Crudable
         /********************************************************************/
 
         $fields = Crud\FieldTransformer::transform(
-            DB::select('describe ' . $this->model->getTable()),
-            $this->model->getTable()
+            DB::select('describe ' . $table),
+            $table
         );
 
         $query = $this->model;
 
         $transformer = self::setTransformer(
-            'Crud\\'.(self::toKebabCase($this->model->getTable())).'Transformer'
+            'Crud\\'.(self::toKebabCase($table)).'Transformer'
         );
 
         // should be private setFilter()
@@ -71,7 +71,7 @@ trait Crudable
     public function show($table, $id)
     {
         $transformer = self::setTransformer(
-            'Crud\\Show\\'.(self::toKebabCase($this->model->getTable())).'Transformer'
+            'Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
         );
 
         return $return = fractal($this->model->find($id))
@@ -79,10 +79,10 @@ trait Crudable
             ->toArray();
     }
 
-    public function store(Request $request)
+    public function store(Request $request, $table)
     {
         return $this->show(
-            $this->model->getTable(),
+            $table,
             $this->model->create($request->all())->id
         );
     }
@@ -91,7 +91,7 @@ trait Crudable
     {
         $this->model->find($id)->update($request->all());
         return $this->show(
-            $this->model->getTable(),
+            $table,
             $id
         );
     }
