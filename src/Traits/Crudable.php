@@ -26,7 +26,7 @@ trait Crudable
 
         $query = $this->model;
 
-        $transformer = self::setTransformer('Crud\\'.(self::toKebabCase($table)).'Transformer');
+        $transformer = self::getTransformer('Crud\\'.(self::toKebabCase($table)).'Transformer');
 
         // should be private setFilter()
         if (request()->has('search') && request('search')) {
@@ -70,8 +70,8 @@ trait Crudable
 
     public function show($table, $id)
     {
-        $transformer = self::setTransformer(
-            'Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
+        $transformer = self::getTransformer(
+            '\\Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
         );
 
         return $return = fractal($this->model->find($id))
@@ -79,17 +79,17 @@ trait Crudable
             ->toArray();
     }
 
-    public function store(Request $request, $table)
+    public function store($table)
     {
         return $this->show(
             $table,
-            $this->model->create($request->all())->id
+            $this->model->create(request()->all())->id
         );
     }
 
-    public function update(Request $request, $table, $id)
+    public function update($table, $id)
     {
-        $this->model->find($id)->update($request->all());
+        $this->model->find($id)->update(request()->all());
         return $this->show(
             $table,
             $id
@@ -105,17 +105,29 @@ trait Crudable
     /**
      * todo : should be helper
      */
-    private static function setTransformer($string)
+    protected static function getTransformer($string)
     {
         return class_exists($string)
             ? $string
-            : 'EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\CrudTransformer';
+            : '\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\CrudTransformer';
     }
 
     /**
      * todo : should be helper
      */
-    private static function toKebabCase($string)
+    protected static function getModel($tableName)
+    {
+        $class = '\\App\\Entities\\'.(self::toKebabCase($tableName));
+
+        return class_exists($class)
+            ? (new $class)
+            : (new Crud())->setTable($tableName);
+    }
+
+    /**
+     * todo : should be helper
+     */
+    protected static function toKebabCase($string)
     {
         return rtrim(str_replace('_', '', ucwords($string, '_')), 's');
     }

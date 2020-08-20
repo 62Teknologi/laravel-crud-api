@@ -12,10 +12,10 @@ class CrudController extends Controller
     use Crudable;
 
     protected $model;
+    protected $entities;
 
     public function __construct(Request $request)
     {
-        $this->model = new Crud();
-        $this->model->setTable($request->route('table'));
+        $this->model = self::getModel($request->route('table'));
     }
 }

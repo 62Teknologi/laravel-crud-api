@@ -15,35 +15,56 @@ class CrudTransformer extends TransformerAbstract
 
         foreach ($return as $key => $value) {
             if ($key == 'parent_id') {
-                $return = self::setRelation($return, $table, 'parent');
+                $return = self::getRelation($return, $table, 'parent');
             } elseif (strpos($key, '_id')) {
                 $objName = str_replace('_id', '', $key);
-                $return = self::setRelation($return, $objName);
+                $return = self::getRelation($return, $objName);
             }
         }
 
         return $return;
     }
 
-    protected static function setRelation($return, $objName, $fieldName = null)
+    protected static function getRelation($return, $objName, $fieldName = null)
     {
         $tableName = (!$fieldName)
             ? $objName.'s'
             : $objName;
 
+        // to do : check intersect from entities
         $fields = $result = array_intersect(
             Schema::getColumnListing($tableName),
-            ['id', 'code', 'description', 'full_name']
+            ['code', 'description', 'full_name']
         );
         
         if (!empty($fields)) {
             $fieldName = $fieldName ?? $objName;
 
-            $return[$fieldName] = (new Crud())->setTable($tableName)
+            $return[$fieldName] = self::getModel($tableName)
                 ->select($fields)
                 ->find($return[$fieldName.'_id']);
         }
 
         return $return;
+    }
+
+    /**
+     * todo : should be helper
+     */
+    protected static function getModel($tableName)
+    {
+        $class = '\\App\\Entities\\'.(self::toKebabCase($tableName));
+
+        return class_exists($class)
+            ? (new $class)
+            : (new Crud())->setTable($tableName);
+    }
+
+    /**
+     * todo : should be helper
+     */
+    protected static function toKebabCase($string)
+    {
+        return rtrim(str_replace('_', '', ucwords($string, '_')), 's');
     }
 }
