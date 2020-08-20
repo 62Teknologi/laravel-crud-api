@@ -3,69 +3,84 @@
 namespace EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 
 use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
+use Illuminate\Support\Facades\Schema;
 
 class FieldTransformer
 {
     public static function transform($array, $table)
     {
-        return array_map(function ($i) use ($table) {
-            $type = explode(" ", str_replace(["(", ")"], " ", $i->Type));
+        return array_map(function ($value) use ($table) {
+            $type = explode(" ", str_replace(["(", ")"], " ", $value->Type));
 
             $return = [
-                'field' => $i->Field,
+                'field' => $value->Field,
                 'type' => $type[0]
             ];
 
-            if ($i->Field == 'parent_id') {
-                $return['type'] = 'relation';
-
-                $return['relation'] = [
-                    'field' => str_replace('_id', '', $i->Field),
-                    'data' => (new Crud())->setTable($table)
-                        ->select('id', 'code', 'description')
-                        ->get()
-                ];
-            } elseif ($i->Field == 'password') {
-                $return['type'] = $i->Field;
+            if ($value->Field == 'parent_id') {
+                $return = self::setRelation($return, $table, 'parent');
+            } elseif ($value->Field == 'password') {
+                $return['type'] = $value->Field;
                 $return['table_hidden'] = true;
-            } elseif ($i->Field == 'image' || strpos($i->Field, '_image')) {
+            } elseif ($value->Field == 'image' || strpos($value->Field, '_image')) {
                 $return['type'] = 'image';
                 $return['table_hidden'] = true;
-            } elseif (strpos($i->Field, '_id')) {
-                $return['type'] = 'relation';
-
-                $return['relation'] = [
-                    'field' => str_replace('_id', '', $i->Field),
-                    'data' => (new Crud())->setTable(str_replace('_id', '', $i->Field).'s')
-                        ->select('id', 'code', 'description')
-                        ->get()
-                ];
+            } elseif (strpos($value->Field, '_id')) {
+                $objName = str_replace('_id', '', $value->Field);
+                $return = self::setRelation($return, $objName);
             }
 
             if (isset($type[1])) {
                 $return['length'] = $type[1];
             }
 
-            if ($i->Default) {
-                $return['default'] = $i->Default;
+            if ($value->Default) {
+                $return['default'] = $value->Default;
             }
 
-            if ($i->Null != "YES") {
-                $return['required'] = true;
+            if ($value->Null == "YES") {
+                $return['nullable'] = true;
             }
 
-            if ($i->Key == 'PRI' || $i->Field == 'created_at') {
+            if ($value->Key == 'PRI' || $value->Field == 'created_at') {
                 $return['form_hidden']
                 = $return['table_hidden']
                 = true;
             }
 
-            if ($i->Field == 'updated_at') {
+            if ($value->Field == 'updated_at') {
                 $return['form_hidden'] = true;
             }
 
 
             return $return;
         }, $array);
+    }
+
+    protected static function setRelation($return, $objName, $fieldName = null)
+    {
+        $tableName = (!$fieldName)
+            ? $objName.'s'
+            : $objName;
+
+        $fields = $result = array_intersect(
+            Schema::getColumnListing($tableName),
+            ['id', 'code', 'description', 'full_name']
+        );
+
+        if (!empty($fields)) {
+            $fieldName = $fieldName ?? $objName;
+
+            $return['relation'] = [
+                'field' => $fieldName,
+                'data' => (new Crud())->setTable($tableName)
+                    ->select($fields)
+                    ->get()
+            ];
+
+            $return['type'] = 'relation';
+        }
+
+        return $return;
     }
 }

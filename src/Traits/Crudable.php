@@ -6,11 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 use \Illuminate\Pagination\Paginator;
+use App\Entities\Afdeling;
 
 trait Crudable
 {
     public function index($table)
     {
+        ;
         /***** WARNING, FUCK1NG STUPID $H1T CODE BELOW, REMOVE ASAP!!! *******/
         Paginator::currentPageResolver(function () {
             return request('page', 1);
@@ -24,9 +26,7 @@ trait Crudable
 
         $query = $this->model;
 
-        $transformer = self::setTransformer(
-            'Crud\\'.(self::toKebabCase($table)).'Transformer'
-        );
+        $transformer = self::setTransformer('Crud\\'.(self::toKebabCase($table)).'Transformer');
 
         // should be private setFilter()
         if (request()->has('search') && request('search')) {
