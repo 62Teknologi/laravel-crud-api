@@ -10,9 +10,10 @@ use App\Entities\Afdeling;
 
 trait Crudable
 {
+    public $query;
+
     public function index($table)
     {
-        ;
         /***** WARNING, FUCK1NG STUPID $H1T CODE BELOW, REMOVE ASAP!!! *******/
         Paginator::currentPageResolver(function () {
             return request('page', 1);
@@ -24,38 +25,13 @@ trait Crudable
             $table
         );
 
-        $query = $this->model;
+        $query = $this->query()
+            ->setFilter($fields)
+            ->setHasFilter()
+            ->setSort()
+            ->get();
 
         $transformer = self::getTransformer('Crud\\'.(self::toKebabCase($table)).'Transformer');
-
-        // should be private setFilter()
-        if (request()->has('search') && request('search')) {
-            $query = $query->where(function ($subQuery) use ($fields) {
-                array_map(function ($field) use (&$subQuery) {
-                    if ($field['type'] == 'varchar' || $field['type'] == 'longtext') {
-                        $subQuery = $subQuery->orWhere($field['field'], 'like', '%'.request('search').'%');
-                    }
-                }, $fields);
-
-                return $subQuery;
-            });
-        }
-
-        // should be private setFilter()
-        array_map(function ($field) use (&$query) {
-            if (request()->has($field['field']) && $field['type'] == 'relation' && request($field['field'])) {
-                $query = $query->whereIn($field['field'], explode(',', request($field['field'])));
-            }
-        }, $fields);
-
-        // should be private setSort()
-        $desc = request()->has('desc')
-            ? 'desc'
-            : 'asc';
-
-        $query = (request('sort'))
-            ? $query->orderBy(request('sort'), $desc)
-            : $query;
 
         $return = fractal($query->paginate(request('per_page', 15)))
             ->transformWith(new $transformer)
@@ -100,6 +76,80 @@ trait Crudable
     {
         $this->model->find($id)->delete();
         return ['message' => 'Delete Success'];
+    }
+
+    protected function query()
+    {
+        //$this->query = DB::table($this->model->getTable());
+        $this->query = $this->model->select($this->model->getTable().'.*');
+        return $this;
+    }
+
+    protected function get()
+    {
+        return $this->query;
+    }
+
+    protected function setFilter($fields)
+    {
+        if (request()->has('search') && request('search')) {
+            $this->query = $this->query->where(function ($subQuery) use ($fields) {
+                array_map(function ($field) use (&$subQuery) {
+                    if ($field['type'] == 'varchar' || $field['type'] == 'longtext') {
+                        $subQuery = $subQuery->orWhere($this->table.'.'.$field['field'], 'like', '%'.request('search').'%');
+                    }
+                }, $fields);
+
+                return $subQuery;
+            });
+        }
+
+        array_map(function ($field) {
+            if (request()->has($field['field']) && request($field['field']) && ($field['type'] == 'int' || $field['type'] == 'relation')) {
+                $this->query = $this->query->whereIn($this->table.'.'.$field['field'], explode(',', request($field['field'])));
+            }
+        }, $fields);
+
+        return $this;
+    }
+
+    protected function setHasFilter()
+    {
+        if ($this->model->hasFilters) {
+            $table = $this->model->hasFilters[0][0];
+            $on = $table.'.'.$this->model->hasFilters[0][1];
+            $fields = $this->model->hasFilters[0][2];
+
+            $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
+                $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.id');
+                
+                array_map(function ($field) use (&$subQuery, $table) {
+                    $field[1] = ($field[1] == '?') ? request('has_'.$table.'_'.$field[0]) : $field[1];
+
+                    if ($field[1]) {
+                        $subQuery = $subQuery->where($table.'.'.$field[0], $field[1]);
+                    }
+                }, $fields);
+
+                return $subQuery;
+            });
+        }
+
+        return $this;
+    }
+
+    protected function setSort()
+    {
+        // should be private setSort()
+        $desc = request()->has('desc')
+            ? 'desc'
+            : 'asc';
+
+        $this->query = (request('sort')) 
+            ? $this->query->orderBy(request('sort'), $desc)
+            : $this->query;
+
+        return $this;
     }
 
     /**
