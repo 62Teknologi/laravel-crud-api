@@ -57,6 +57,10 @@ trait Crudable
 
     public function store($table)
     {
+        if (method_exists($this->model, 'store')) {
+            return $this->model->store(request()->all());
+        }
+
         return $this->show(
             $table,
             $this->model->create(request()->all())->id
@@ -120,19 +124,21 @@ trait Crudable
             $on = $table.'.'.$this->model->hasFilters[0][1];
             $fields = $this->model->hasFilters[0][2];
 
-            $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
-                $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.id');
-                
-                array_map(function ($field) use (&$subQuery, $table) {
-                    $field[1] = ($field[1] == '?') ? request('has_'.$table.'_'.$field[0]) : $field[1];
+            if (request()->has('has_'.$table)) {
+                $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
+                    $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.id');
+                    
+                    array_map(function ($field) use (&$subQuery, $table) {
+                        $field[1] = ($field[1] == '?') ? request('has_'.$table.'_'.$field[0]) : $field[1];
 
-                    if ($field[1]) {
-                        $subQuery = $subQuery->where($table.'.'.$field[0], $field[1]);
-                    }
-                }, $fields);
+                        if ($field[1]) {
+                            $subQuery = $subQuery->where($table.'.'.$field[0], $field[1]);
+                        }
+                    }, $fields);
 
-                return $subQuery;
-            });
+                    return $subQuery;
+                });
+            }
         }
 
         return $this;
@@ -145,7 +151,7 @@ trait Crudable
             ? 'desc'
             : 'asc';
 
-        $this->query = (request('sort')) 
+        $this->query = (request('sort'))
             ? $this->query->orderBy(request('sort'), $desc)
             : $this->query;
 
