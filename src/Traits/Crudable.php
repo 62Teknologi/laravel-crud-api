@@ -2,11 +2,10 @@
 
 namespace EnamDuaTeknologi\LaravelCrudApi\Traits;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
 use \Illuminate\Pagination\Paginator;
-use App\Entities\Afdeling;
+use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud\FieldTransformer;
+use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 
 trait Crudable
 {
@@ -20,7 +19,7 @@ trait Crudable
         });
         /********************************************************************/
 
-        $fields = Crud\FieldTransformer::transform(
+        $fields = FieldTransformer::transform(
             DB::select('describe ' . $table),
             $table
         );
@@ -31,7 +30,7 @@ trait Crudable
             ->setSort()
             ->get();
 
-        $transformer = self::getTransformer('Crud\\'.(self::toKebabCase($table)).'Transformer');
+        $transformer = self::getTransformer('\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\'.(self::toKebabCase($table)).'Transformer');
 
         $return = fractal($query->paginate(request('per_page', 15)))
             ->transformWith(new $transformer)
@@ -47,7 +46,7 @@ trait Crudable
     public function show($table, $id)
     {
         $transformer = self::getTransformer(
-            '\\Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
+            '\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
         );
 
         return $return = fractal($this->model->find($id))
@@ -57,8 +56,8 @@ trait Crudable
 
     public function store($table)
     {
-        if (method_exists($this->model, 'store')) {
-            return $this->model->store(request()->all());
+        if (method_exists($this->model, '_create')) {
+            return $this->model->_create(request()->all());
         }
 
         return $this->show(
@@ -69,7 +68,12 @@ trait Crudable
 
     public function update($table, $id)
     {
+        if (method_exists($this->model, '_update')) {
+            return $this->model->_update($id, request()->all());
+        }
+
         $this->model->find($id)->update(request()->all());
+
         return $this->show(
             $table,
             $id
