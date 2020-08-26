@@ -126,19 +126,19 @@ trait Crudable
         if ($this->model->hasFilters) {
             $table = $this->model->hasFilters[0][0];
             $on = $table.'.'.$this->model->hasFilters[0][1];
-            $fields = $this->model->hasFilters[0][2];
+            $fields = isset($this->model->hasFilters[0][2])
+                ? $this->model->hasFilters[0][2]
+                : [];
 
-            if (request()->has('has_'.$table)) {
+            if (request()->has($table)) {
+                $fields = array_merge_recursive($fields, request($table));
+
                 $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
                     $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.id');
                     
-                    array_map(function ($field) use (&$subQuery, $table) {
-                        $field[1] = ($field[1] == '?') ? request('has_'.$table.'_'.$field[0]) : $field[1];
-
-                        if ($field[1]) {
-                            $subQuery = $subQuery->where($table.'.'.$field[0], $field[1]);
-                        }
-                    }, $fields);
+                    foreach ($fields as $key => $value) {
+                        $subQuery = $subQuery->where($table.'.'.$key, $value);
+                    };
 
                     return $subQuery;
                 });
