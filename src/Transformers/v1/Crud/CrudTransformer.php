@@ -34,7 +34,7 @@ class CrudTransformer extends TransformerAbstract
         // to do : check intersect from entities
         $fields = $result = array_intersect(
             Schema::getColumnListing($tableName),
-            ['code', 'description', 'full_name']
+            ['id', 'code', 'description', 'full_name']
         );
         
         if (!empty($fields)) {
