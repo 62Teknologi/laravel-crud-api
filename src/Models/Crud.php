@@ -9,12 +9,14 @@ class Crud extends Model
     protected $guarded = [];
     public $timestamps = false;
 
-    public function setGuarded($values) {
-    	$this->guarded = $values;
-    	return $this;
+    public function setGuarded($values)
+    {
+        $this->guarded = $values;
+        return $this;
     }
 
-    public function getGuarded() {
-    	return $this->guarded;
+    public function getGuarded()
+    {
+        return $this->guarded;
     }
 }

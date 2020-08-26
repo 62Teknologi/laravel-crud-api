@@ -26,7 +26,7 @@ trait Crudable
 
         $query = $this->query()
             ->setFilter($fields)
-            ->setHasFilter()
+            ->setHasBelongFilter()
             ->setSort()
             ->get();
 
@@ -121,7 +121,10 @@ trait Crudable
         return $this;
     }
 
-    protected function setHasFilter()
+    /**
+     * to do : refactor, to decrease redudancy code
+     */
+    protected function setHasBelongFilter()
     {
         if ($this->model->hasFilters) {
             $table = $this->model->hasFilters[0][0];
@@ -135,6 +138,28 @@ trait Crudable
 
                 $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
                     $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.id');
+                    
+                    foreach ($fields as $key => $value) {
+                        $subQuery = $subQuery->where($table.'.'.$key, $value);
+                    };
+
+                    return $subQuery;
+                });
+            }
+        }
+
+        if ($this->model->belongFilters) {
+            $table = $this->model->belongFilters[0][0];
+            $on = $table.'.id';
+            $fields = isset($this->model->belongFilters[0][2])
+                ? $this->model->belongFilters[0][2]
+                : [];
+
+            if (request()->has($table)) {
+                $fields = array_merge_recursive($fields, request($table));
+
+                $this->query = $this->query->join($table, function ($subQuery) use ($on, $fields, $table) {
+                    $subQuery = $subQuery->on($on, '=', $this->model->getTable().'.'.$this->model->belongFilters[0][1]);
                     
                     foreach ($fields as $key => $value) {
                         $subQuery = $subQuery->where($table.'.'.$key, $value);
