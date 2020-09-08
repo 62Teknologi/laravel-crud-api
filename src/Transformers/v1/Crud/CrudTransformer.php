@@ -40,7 +40,7 @@ class CrudTransformer extends TransformerAbstract
         if (!empty($fields)) {
             $fieldName = $fieldName ?? $objName;
 
-            $return[$fieldName] = self::getModel($tableName)
+            $return[$fieldName] = $return[$fieldName] ?? self::getModel($tableName)
                 ->select($fields)
                 ->find($return[$fieldName.'_id']);
         }
