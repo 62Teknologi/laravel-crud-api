@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use \Illuminate\Pagination\Paginator;
 use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud\FieldTransformer;
 use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
+use Illuminate\Support\Str;
 
 trait Crudable
 {
@@ -214,6 +215,6 @@ trait Crudable
      */
     protected static function toKebabCase($string)
     {
-        return rtrim(str_replace('_', '', ucwords($string, '_')), 's');
+        return Str::singular(str_replace('_', '', ucwords($string, '_')));
     }
 }
