@@ -16,7 +16,7 @@ class LaravelCrudApiProviders extends ServiceProvider
         $this->app->router->group([
             'namespace' => 'EnamDuaTeknologi\LaravelCrudApi\Controllers',
         ], function ($router) {
-            require DIR.'/routes/api.php';
+            require __DIR__.'/routes/api.php';
         });
     }
 }
