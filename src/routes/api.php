@@ -1,8 +1,8 @@
 <?php
-$router->group(['prefix' => 'crud/{table}'], function ($router) {
-    $router->get('/', 'CrudController@index');
-    $router->get('/{id}', 'CrudController@show');
-    $router->post('/', 'CrudController@store');
-    $router->put('/{id}', 'CrudController@update');
-    $router->delete('/{id}', 'CrudController@destroy');
+Route::group(['prefix' => 'crud/{table}'], function () {
+    Route::get('/', 'CrudController@index');
+    Route::get('/{id}', 'CrudController@show');
+    Route::post('/', 'CrudController@store');
+    Route::put('/{id}', 'CrudController@update');
+    Route::delete('/{id}', 'CrudController@destroy');
 });
