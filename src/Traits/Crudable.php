@@ -57,34 +57,46 @@ trait Crudable
 
     public function store($table)
     {
-        if (method_exists($this->model, '_create')) {
-            return $this->model->_create(request()->all());
-        }
+        try {
+            if (method_exists($this->model, '_create')) {
+                return $this->model->_create(request()->all());
+            }
 
-        return $this->show(
-            $table,
-            $this->model->create(request()->all())->id
-        );
+            return $this->show(
+                $table,
+                $this->model->create(request()->all())->id
+            );
+        } catch (\Exception $e) {
+            return ['message' => $e->getMessage()];
+        }
     }
 
     public function update($table, $id)
     {
-        if (method_exists($this->model, '_update')) {
-            return $this->model->_update($id, request()->all());
+        try {
+            if (method_exists($this->model, '_update')) {
+                return $this->model->_update($id, request()->all());
+            }
+
+            $this->model->find($id)->update(request()->all());
+
+            return $this->show(
+                $table,
+                $id
+            );
+        } catch (\Exception $e) {
+            return ['message' => $e->getMessage()];
         }
-
-        $this->model->find($id)->update(request()->all());
-
-        return $this->show(
-            $table,
-            $id
-        );
     }
 
     public function destroy($table, $id)
     {
-        $this->model->find($id)->delete();
-        return ['message' => 'Delete Success'];
+        try {
+            $this->model->find($id)->delete();
+            return ['message' => 'Delete Success'];
+        } catch (\Exception $e) {
+            return ['message' => $e->getMessage()];
+        }
     }
 
     protected function query()
