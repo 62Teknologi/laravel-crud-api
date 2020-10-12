@@ -7,6 +7,7 @@ use \Illuminate\Pagination\Paginator;
 use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud\FieldTransformer;
 use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 trait Crudable
 {
@@ -24,6 +25,21 @@ trait Crudable
             DB::select('describe ' . $table),
             $table
         );
+
+        foreach (($this->model->options ?? []) as $key => $value) {
+            $colums = array_intersect(
+                Schema::getColumnListing($value),
+                ['id', 'title', 'code', 'description', 'full_name']
+            );
+
+            $field = [
+                'field' => $value,
+                'type' => 'option',
+                'data' => DB::select('select '.implode($colums, ',').' from ' . $value),
+            ];
+
+            $fields[] = $field;
+        }
 
         $query = $this->query()
             ->setFilter($fields)
