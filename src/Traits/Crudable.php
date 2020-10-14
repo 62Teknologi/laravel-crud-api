@@ -54,7 +54,6 @@ trait Crudable
             ->toArray();
 
         $return['fields'] = $fields;
-
         $return['message'] = 'Success';
 
         return $return;
@@ -78,9 +77,15 @@ trait Crudable
                 return $this->model->_create(request()->all());
             }
 
+            $data = $this->model->create(request()->all());
+
+            if (method_exists($this->model, '_created')) {
+                $this->model->_created($data);
+            }
+
             return $this->show(
                 $table,
-                $this->model->create(request()->all())->id
+                $data->id
             );
         } catch (\Exception $e) {
             return ['message' => $e->getMessage()];
@@ -94,7 +99,12 @@ trait Crudable
                 return $this->model->_update($id, request()->all());
             }
 
-            $this->model->find($id)->update(request()->all());
+            $data = $this->model->find($id);
+            $data->update(request()->all());
+
+            if (method_exists($this->model, '_updated')) {
+                $this->model->_updated($data);
+            }
 
             return $this->show(
                 $table,
@@ -108,7 +118,13 @@ trait Crudable
     public function destroy($table, $id)
     {
         try {
-            $this->model->find($id)->delete();
+            $data = $this->model->find($id);
+            $data->delete();
+
+            if (method_exists($this->model, '_deleted')) {
+                $this->model->_deleted($data);
+            }
+
             return ['message' => 'Delete Success'];
         } catch (\Exception $e) {
             return ['message' => $e->getMessage()];
