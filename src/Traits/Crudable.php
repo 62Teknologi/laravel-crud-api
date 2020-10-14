@@ -88,7 +88,7 @@ trait Crudable
                 $data->id
             );
         } catch (\Exception $e) {
-            return ['message' => $e->getMessage()];
+            return  response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -111,7 +111,7 @@ trait Crudable
                 $id
             );
         } catch (\Exception $e) {
-            return ['message' => $e->getMessage()];
+            return  response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -127,7 +127,7 @@ trait Crudable
 
             return ['message' => 'Delete Success'];
         } catch (\Exception $e) {
-            return ['message' => $e->getMessage()];
+            return  response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
