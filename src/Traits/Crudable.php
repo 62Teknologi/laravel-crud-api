@@ -4,7 +4,7 @@ namespace EnamDuaTeknologi\LaravelCrudApi\Traits;
 
 use Illuminate\Support\Facades\DB;
 use \Illuminate\Pagination\Paginator;
-use EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud\FieldTransformer;
+use EnamDuaTeknologi\LaravelCrudApi\Transformers\FieldTransformer;
 use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Schema;
 trait Crudable
 {
     public $query;
+
+    // should be in config
+    protected $transformerPath = "\\App\\Transformers";
 
     public function index($table)
     {
@@ -47,7 +50,7 @@ trait Crudable
             ->setSort()
             ->get();
 
-        $transformer = self::getTransformer('\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\'.(self::toKebabCase($table)).'Transformer');
+        $transformer = self::getTransformer($this->transformerPath.'\\'.self::toKebabCase($table).'Transformer');
 
         $return = fractal($query->paginate(request('per_page', 15)))
             ->transformWith(new $transformer)
@@ -62,7 +65,7 @@ trait Crudable
     public function show($table, $id)
     {
         $transformer = self::getTransformer(
-            '\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\Show\\'.(self::toKebabCase($table)).'Transformer'
+            $this->transformerPath.'\\Show\\'.(self::toKebabCase($table)).'Transformer'
         );
 
         return $return = fractal($this->model->find($id))
@@ -239,7 +242,7 @@ trait Crudable
     {
         return class_exists($string)
             ? $string
-            : '\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\v1\\Crud\\CrudTransformer';
+            : '\\EnamDuaTeknologi\\LaravelCrudApi\\Transformers\\CrudTransformer';
     }
 
     /**

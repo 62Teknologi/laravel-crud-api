@@ -1,6 +1,6 @@
 <?php
 
-namespace EnamDuaTeknologi\LaravelCrudApi\Transformers\v1\Crud;
+namespace EnamDuaTeknologi\LaravelCrudApi\Transformers;
 
 use EnamDuaTeknologi\LaravelCrudApi\Models\Crud;
 use League\Fractal\TransformerAbstract;
