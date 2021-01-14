@@ -250,11 +250,15 @@ trait Crudable
      */
     protected static function getModel($tableName)
     {
-        $class = '\\App\\Entities\\'.(self::toKebabCase($tableName));
+        $tableName = self::toKebabCase($tableName);
+        $entities = '\\App\\Entities\\'.($tableName);
+        $models = '\\App\\Models\\'.($tableName);
 
-        return class_exists($class)
-            ? (new $class)
-            : (new Crud())->setTable($tableName);
+        return class_exists($models)
+            ? (new $models)
+            : ( class_exists($entities)
+                ? (new $entities)
+                : (new Crud())->setTable($tableName));
     }
 
     /**
