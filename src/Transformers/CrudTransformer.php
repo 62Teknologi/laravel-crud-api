@@ -53,7 +53,7 @@ class CrudTransformer extends TransformerAbstract
      */
     protected static function getModel($tableName)
     {
-        $class = '\\App\\Entities\\'.(self::toKebabCase($tableName));
+        $class = '\\App\\Entities\\'.(self::toModelCase($tableName));
 
         return class_exists($class)
             ? (new $class)
@@ -63,7 +63,7 @@ class CrudTransformer extends TransformerAbstract
     /**
      * todo : should be helper
      */
-    protected static function toKebabCase($string)
+    protected static function toModelCase($string)
     {
         return rtrim(str_replace('_', '', ucwords($string, '_')), 's');
     }

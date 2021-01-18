@@ -50,7 +50,7 @@ trait Crudable
             ->setSort()
             ->get();
 
-        $transformer = self::getTransformer($this->transformerPath.'\\'.self::toKebabCase($table).'Transformer');
+        $transformer = self::getTransformer($this->transformerPath.'\\'.self::toModelCase($table).'Transformer');
 
         $return = fractal($query->paginate(request('per_page', 15)))
             ->transformWith(new $transformer)
@@ -65,7 +65,7 @@ trait Crudable
     public function show($table, $id)
     {
         $transformer = self::getTransformer(
-            $this->transformerPath.'\\Show\\'.(self::toKebabCase($table)).'Transformer'
+            $this->transformerPath.'\\Show\\'.(self::toModelCase($table)).'Transformer'
         );
 
         return $return = fractal($this->model->find($id))
@@ -250,10 +250,10 @@ trait Crudable
      */
     protected static function getModel($tableName)
     {
-        $tableName = self::toKebabCase($tableName);
-        $entities = '\\App\\Entities\\'.($tableName);
-        $models = '\\App\\Models\\'.($tableName);
-
+        $model = self::toModelCase($tableName);
+        $entities = '\\App\\Entities\\'.($model);
+        $models = '\\App\\Models\\'.($model);
+        
         return class_exists($models)
             ? (new $models)
             : ( class_exists($entities)
@@ -264,7 +264,7 @@ trait Crudable
     /**
      * todo : should be helper
      */
-    protected static function toKebabCase($string)
+    protected static function toModelCase($string)
     {
         return Str::singular(str_replace('_', '', ucwords($string, '_')));
     }
