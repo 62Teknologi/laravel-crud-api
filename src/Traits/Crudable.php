@@ -121,6 +121,10 @@ trait Crudable
     public function destroy($table, $id)
     {
         try {
+            if (method_exists($this->model, '_delete')) {
+                return $this->model->_delete($id, request()->all());
+            }
+
             $data = $this->model->find($id);
             $data->delete();
 
