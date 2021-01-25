@@ -16,13 +16,22 @@ trait Crudable
     // should be in config
     protected $transformerPath = "\\App\\Transformers";
 
+    /*
+    * todo : warning 1 work around for constructor not called if multiple request called in different controller
+    * todo : warning 2 work around for paging not working
+    */
     public function index($table)
     {
-        /***** WARNING, FUCK1NG STUPID $H1T CODE BELOW, REMOVE ASAP!!! *******/
+        /***** WARNING 1 *******/
+        $this->model = self::getModel(request()->route('table'));
+        $this->table = request()->route('table');
+
+        /***** WARNING 2 *******/
         Paginator::currentPageResolver(function () {
             return request('page', 1);
         });
-        /********************************************************************/
+
+        /***********************/
 
         $fields = FieldTransformer::transform(
             DB::select('describe ' . $table),
