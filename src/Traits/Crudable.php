@@ -85,6 +85,14 @@ trait Crudable
     public function store($table)
     {
         try {
+            if (method_exists($this->model, '_beforeCreate')) {
+                $response = $this->model->_beforeCreate(request()->all());
+
+                if ($response) {
+                    return $response;
+                }
+            }
+
             if (method_exists($this->model, '_create')) {
                 return $this->model->_create(request()->all());
             }
@@ -100,13 +108,21 @@ trait Crudable
                 $data->id
             );
         } catch (\Exception $e) {
-            return  response()->json(['message' => $e->getMessage()], 500);
+            return  response()->json(['message' => $e->getMessage(), 'traces' => $e->getTrace()], 500);
         }
     }
 
     public function update($table, $id)
     {
         try {
+            if (method_exists($this->model, '_beforeUpdate')) {
+                $response = $this->model->_beforeUpdate($id, request()->all());
+
+                if ($response) {
+                    return $response;
+                }
+            }
+
             if (method_exists($this->model, '_update')) {
                 return $this->model->_update($id, request()->all());
             }
@@ -123,13 +139,17 @@ trait Crudable
                 $id
             );
         } catch (\Exception $e) {
-            return  response()->json(['message' => $e->getMessage()], 500);
+            return  response()->json(['message' => $e->getMessage(), 'traces' => $e->getTrace()], 500);
         }
     }
 
     public function destroy($table, $id)
     {
         try {
+            if (method_exists($this->model, '_beforeDelete')) {
+                $this->model->_beforeDelete($id, request()->all());
+            }
+
             if (method_exists($this->model, '_delete')) {
                 return $this->model->_delete($id, request()->all());
             }
@@ -143,7 +163,7 @@ trait Crudable
 
             return ['message' => 'Delete Success'];
         } catch (\Exception $e) {
-            return  response()->json(['message' => $e->getMessage()], 500);
+            return  response()->json(['message' => $e->getMessage(), 'traces' => $e->getTrace()], 500);
         }
     }
 
@@ -164,7 +184,7 @@ trait Crudable
         if (request()->has('search') && request('search')) {
             $this->query = $this->query->where(function ($subQuery) use ($fields) {
                 array_map(function ($field) use (&$subQuery) {
-                    if ($field['type'] == 'varchar' || $field['type'] == 'longtext') {
+                    if ($field['type'] == 'varchar' || $field['type'] == 'text' || $field['type'] == 'mediumtext' || $field['type'] == 'longtext') {
                         $subQuery = $subQuery->orWhere($this->table.'.'.$field['field'], 'like', '%'.request('search').'%');
                     }
                 }, $fields);
@@ -269,7 +289,7 @@ trait Crudable
         
         return class_exists($models)
             ? (new $models)
-            : ( class_exists($entities)
+            : (class_exists($entities)
                 ? (new $entities)
                 : (new Crud())->setTable($tableName));
     }

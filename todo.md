@@ -32,5 +32,6 @@ todo
 		1. use laravel mutator and accessor
 		1. use laravel relationship
 		1. use laravel fillable / guard
+		1. set password
 1. make validation
 1. make custom transformers
