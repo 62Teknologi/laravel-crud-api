@@ -85,6 +85,10 @@ trait Crudable
     public function store($table)
     {
         try {
+            if ($this->model->loggable) {
+                $this->model->setUpdatedByAttribute();
+            }
+
             if (method_exists($this->model, '_beforeCreate')) {
                 $response = $this->model->_beforeCreate(request()->all());
 
@@ -115,6 +119,10 @@ trait Crudable
     public function update($table, $id)
     {
         try {
+            if ($this->model->loggable) {
+                $this->model->setUpdatedByAttribute();
+            }
+            
             if (method_exists($this->model, '_beforeUpdate')) {
                 $response = $this->model->_beforeUpdate($id, request()->all());
 
