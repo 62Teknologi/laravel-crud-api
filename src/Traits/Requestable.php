@@ -4,7 +4,7 @@ namespace EnamDuaTeknologi\LaravelCrudApi\Traits;
 
 use Illuminate\Http\Request;
 
-trait RequestableTrait
+trait Requestable
 {
     public $requestable = true;
 
