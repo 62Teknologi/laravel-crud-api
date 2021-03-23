@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 trait Uploadable
 {
     public $uploadable = true;
+    protected $disk = 'custom';
 
     public function upload(UploadedFile $uploadedFile)
     {
@@ -16,29 +17,47 @@ trait Uploadable
         $folder = str_plural(strtolower(end($array)));
         $id = uniqid().'.'.$uploadedFile->getClientOriginalExtension();
 
-        $uploadedFile->storeAs($folder, $id, 'custom');
+        $uploadedFile->storeAs($folder, $id, $this->disk);
 
         return $folder.'/'.$id;
     }
 
     public function removeFile($path)
     {
-        return Storage::disk('custom')->delete($path);
+        return Storage::disk($this->disk)->delete($path);
     }
 
-    public function setImageUrlAttribute($value)
+    public function bulkUploads()
     {
-        if ($this->image_url) {
-            $this->removeFile($this->image_url);
+        $data = array_merge($this->uploads ?? [], $this->nullable_uploads ?? []);
+
+        foreach ($this->data as $key => $value) {
+            if ($this->$value) {
+                $this->removeFile($this->$value);
+            }
+
+            if (request()->file($value)) {
+                $this->attributes[$value] = $this->upload(request()->file($value));
+            }
+        }
+    }
+
+    public function getUploadsAttribute()
+    {
+        $uploads = [];
+
+        foreach ($this->image_uploads ?? [] as $value) {
+            $uploads[$value] = isset($this->attributes[$value])
+                ? env("APP_URL")."/uploads/".$this->attributes[$value]
+                : env("APP_URL")."/images/placeholder.jpg";
         }
 
-        $this->attributes['image_url'] = $this->upload($value);
-    }
+        foreach ($this->nullable_uploads ?? [] as $value) {
+            $uploads[$value] = isset($this->attributes[$value])
+                ? env("APP_URL")."/uploads/".$this->attributes[$value]
+                : null;
+        }
 
-    public function getImageAttribute()
-    {
-        return isset($this->attributes['image_url'])
-            ? env("APP_URL")."/uploads/".$this->attributes['image_url']
-            : env("APP_URL")."/images/placeholder.jpg";
+        return $uploads;
     }
 }

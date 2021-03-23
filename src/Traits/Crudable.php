@@ -89,6 +89,10 @@ trait Crudable
                 $this->model->setUpdatedByAttribute();
             }
 
+            if ($this->model->uploadable) {
+                $this->model->bulkUploads();
+            }
+
             if (method_exists($this->model, '_beforeCreate')) {
                 $response = $this->model->_beforeCreate(request()->all());
 
@@ -119,12 +123,18 @@ trait Crudable
     public function update($table, $id)
     {
         try {
+            $data = $this->model->find($id);
+
             if ($this->model->loggable) {
                 $this->model->setUpdatedByAttribute();
             }
             
+            if ($this->model->uploadable) {
+                $this->model->bulkUploads();
+            }
+            
             if (method_exists($this->model, '_beforeUpdate')) {
-                $response = $this->model->_beforeUpdate($id, request()->all());
+                $response = $this->model->_beforeUpdate($data, request()->all());
 
                 if ($response) {
                     return $response;
@@ -132,10 +142,9 @@ trait Crudable
             }
 
             if (method_exists($this->model, '_update')) {
-                return $this->model->_update($id, request()->all());
+                return $this->model->_update($data, request()->all());
             }
 
-            $data = $this->model->find($id);
             $data->update(request()->all());
 
             if (method_exists($this->model, '_updated')) {
@@ -154,15 +163,16 @@ trait Crudable
     public function destroy($table, $id)
     {
         try {
+            $data = $this->model->find($id);
+
             if (method_exists($this->model, '_beforeDelete')) {
-                $this->model->_beforeDelete($id, request()->all());
+                $this->model->_beforeDelete($data, request()->all());
             }
 
             if (method_exists($this->model, '_delete')) {
-                return $this->model->_delete($id, request()->all());
+                return $this->model->_delete($data, request()->all());
             }
 
-            $data = $this->model->find($id);
             $data->delete();
 
             if (method_exists($this->model, '_deleted')) {

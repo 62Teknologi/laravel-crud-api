@@ -22,6 +22,13 @@ class CrudTransformer extends TransformerAbstract
             }
         }
 
+        if ($model->uploadable) {
+            $fields = $model->getUploadsAttribute();
+            foreach ($fields as $key => $value) {
+                $return[$key] = $value;
+            }
+        }
+
         return $return;
     }
 
