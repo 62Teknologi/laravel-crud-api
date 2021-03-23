@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\File;
 trait Uploadable
 {
     public $uploadable = true;
+    public $input_files = [];
     protected $disk = 'custom';
+    protected $default_image_uploads = ['image_url'];
+    protected $default_nullable_uploads = [];
 
     public function upload(UploadedFile $uploadedFile)
     {
@@ -29,15 +32,18 @@ trait Uploadable
 
     public function bulkUploads()
     {
-        $data = array_merge($this->uploads ?? [], $this->nullable_uploads ?? []);
+        $data = array_merge(
+            $this->image_uploads ?? $this->default_image_uploads,
+            $this->nullable_uploads ?? $this->default_nullable_uploads
+        );
 
-        foreach ($this->data as $key => $value) {
+        foreach ($data as $key => $value) {
             if ($this->$value) {
                 $this->removeFile($this->$value);
             }
 
             if (request()->file($value)) {
-                $this->attributes[$value] = $this->upload(request()->file($value));
+                $this->input_files[$value] = $this->upload(request()->file($value));
             }
         }
     }
@@ -46,16 +52,20 @@ trait Uploadable
     {
         $uploads = [];
 
-        foreach ($this->image_uploads ?? [] as $value) {
-            $uploads[$value] = isset($this->attributes[$value])
-                ? env("APP_URL")."/uploads/".$this->attributes[$value]
-                : env("APP_URL")."/images/placeholder.jpg";
+        foreach ($this->image_uploads ?? $this->default_image_uploads as $value) {
+            if (array_key_exists($value, $this->attributes)) {
+                $uploads[$value] = ($this->attributes[$value])
+                    ? env("APP_URL")."/uploads/".$this->attributes[$value]
+                    : env("APP_URL")."/images/placeholder.jpg";
+            }
         }
 
-        foreach ($this->nullable_uploads ?? [] as $value) {
-            $uploads[$value] = isset($this->attributes[$value])
-                ? env("APP_URL")."/uploads/".$this->attributes[$value]
-                : null;
+        foreach ($this->nullable_uploads ?? $this->default_nullable_uploads as $value) {
+            if (array_key_exists($value, $this->attributes)) {
+                $uploads[$value] = ($this->attributes[$value])
+                    ? env("APP_URL")."/uploads/".$this->attributes[$value]
+                    : null;
+            }
         }
 
         return $uploads;

@@ -105,7 +105,10 @@ trait Crudable
                 return $this->model->_create(request()->all());
             }
 
-            $data = $this->model->create(request()->all());
+            $data = $this->model->create(array_merge(
+                request()->all(),
+                $this->model->input_files ?? []
+            ));
 
             if (method_exists($this->model, '_created')) {
                 $this->model->_created($data);
@@ -128,7 +131,7 @@ trait Crudable
             if ($this->model->loggable) {
                 $this->model->setUpdatedByAttribute();
             }
-            
+
             if ($this->model->uploadable) {
                 $this->model->bulkUploads();
             }
@@ -145,7 +148,10 @@ trait Crudable
                 return $this->model->_update($data, request()->all());
             }
 
-            $data->update(request()->all());
+            $data->update(array_merge(
+                request()->all(),
+                $this->model->input_files ?? []
+            ));
 
             if (method_exists($this->model, '_updated')) {
                 $this->model->_updated($data);
