@@ -60,11 +60,15 @@ class CrudTransformer extends TransformerAbstract
      */
     protected static function getModel($tableName)
     {
-        $class = '\\App\\Entities\\'.(self::toModelCase($tableName));
-
-        return class_exists($class)
-            ? (new $class)
-            : (new Crud())->setTable($tableName);
+        $model = self::toModelCase($tableName);
+        $entities = '\\App\\Entities\\'.($model);
+        $models = '\\App\\Models\\'.($model);
+        
+        return class_exists($models)
+            ? (new $models)
+            : (class_exists($entities)
+                ? (new $entities)
+                : (new Crud())->setTable($tableName));
     }
 
     /**
