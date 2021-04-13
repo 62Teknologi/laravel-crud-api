@@ -42,8 +42,8 @@ trait Uploadable
                 $this->removeFile($this->$value);
             }
 
-            if (request()->file($value)) {
-                $this->input_files[$value] = $this->upload(request()->file($value));
+            if (request($value) instanceof UploadedFile) {
+                $this->input_files[$value] = $this->upload(request($value));
             }
         }
     }
