@@ -12,7 +12,7 @@ trait Allowable
     {
         $permission = array_merge(is_array($permission) ? $permission : [$permission], ['*']);
 
-        return array_intersect($permission, session('permissions'))
-            ?: redirect(env('APP_URL').'/admin/401')->send();
+        return session('permissions') && array_intersect($permission, session('permissions'))
+            ?: redirect(env('401_URL', env('APP_URL').'/401'))->send();
     }
 }
