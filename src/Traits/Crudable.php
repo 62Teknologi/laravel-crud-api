@@ -285,9 +285,13 @@ trait Crudable
             ? 'desc'
             : 'asc';
 
-        $this->query = (request('sort'))
-            ? $this->query->orderBy(request('sort'), $desc)
-            : $this->query;
+        if (request('sort')) {
+            $sorts = explode(',', request('sort'));
+
+            foreach ($sorts as $value) {
+                $this->query = $this->query->orderBy($value, $desc);
+            }
+        }
 
         return $this;
     }
