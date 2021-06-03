@@ -67,6 +67,7 @@ trait Crudable
 
         $return['fields'] = $fields;
         $return['message'] = 'Success';
+        $return['memory_usage'] = memory_get_usage();
 
         return $return;
     }
