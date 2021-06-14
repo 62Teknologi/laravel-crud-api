@@ -17,7 +17,7 @@ class FieldTransformer
                 'type' => $type[0]
             ];
 
-            if ($value->Field == 'parent_id') {
+            if ($value->Field == 'parent_id' && request()->has('set_relation')) {
                 $return = self::setRelation($return, $table, 'parent');
             } elseif ($value->Field == 'password') {
                 $return['type'] = $value->Field;
@@ -25,7 +25,7 @@ class FieldTransformer
             } elseif ($value->Field == 'image' || strpos($value->Field, '_image')) {
                 $return['type'] = 'image';
                 $return['table_hidden'] = true;
-            } elseif (strpos($value->Field, '_id')) {
+            } elseif (strpos($value->Field, '_id') && request()->has('set_relation')) {
                 $objName = str_replace('_id', '', $value->Field);
                 $return = self::setRelation($return, $objName);
             }

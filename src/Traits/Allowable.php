@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 trait Allowable
 {
-    public $trustable = true;
+    public $allowable = true;
 
     public function allows($permission)
     {
