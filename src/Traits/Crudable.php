@@ -219,7 +219,7 @@ trait Crudable
         }
 
         array_map(function ($field) {
-            if (request()->has($field['field']) && request($field['field']) && ($field['type'] == 'int' || $field['type'] == 'relation')) {
+            if (request()->has($field['field']) && request($field['field'])) {
                 $this->query = $this->query->whereIn($this->table.'.'.$field['field'], explode(',', request($field['field'])));
             }
         }, $fields);
